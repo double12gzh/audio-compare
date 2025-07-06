@@ -11,6 +11,7 @@ from .feature_extractor import FeatureExtractor
 from .similarity_calculator import SimilarityCalculator
 from ..utils.config import AudioConfig
 from ..utils.exceptions import AudioLoadError, FeatureExtractionError
+from ..utils.cache_manager import cached_result, streamlit_cached
 
 
 class AudioAnalyzer:
@@ -32,8 +33,9 @@ class AudioAnalyzer:
         self.feature_extractor = FeatureExtractor(self.config)
         self.similarity_calculator = SimilarityCalculator(n_mfcc=self.config.n_mfcc)
 
+    @streamlit_cached
     def load_audio_from_path(
-        self, audio_path: str, resample: bool = True
+        _self, audio_path: str, resample: bool = True
     ) -> Tuple[Optional[np.ndarray], Optional[int]]:
         """
         从文件路径加载音频文件
@@ -45,9 +47,10 @@ class AudioAnalyzer:
         Returns:
             Tuple[音频数据, 采样率]
         """
-        return self.loader.load_audio_from_path(audio_path, resample)
+        return _self.loader.load_audio_from_path(audio_path, resample)
 
-    def extract_features(self, y: np.ndarray, sr: int) -> Dict[str, Any]:
+    @streamlit_cached
+    def extract_features(_self, y: np.ndarray, sr: int) -> Dict[str, Any]:
         """
         提取音频特征
 
@@ -58,9 +61,10 @@ class AudioAnalyzer:
         Returns:
             特征字典
         """
-        return self.feature_extractor.extract_features(y, sr)
+        return _self.feature_extractor.extract_features(y, sr)
 
-    def get_audio_info(self, y: np.ndarray, sr: int) -> Dict[str, Any]:
+    @streamlit_cached
+    def get_audio_info(_self, y: np.ndarray, sr: int) -> Dict[str, Any]:
         """
         获取音频基本信息
 
@@ -71,10 +75,11 @@ class AudioAnalyzer:
         Returns:
             音频信息字典
         """
-        return self.feature_extractor.get_audio_info(y, sr)
+        return _self.feature_extractor.get_audio_info(y, sr)
 
+    @streamlit_cached
     def calculate_similarity(
-        self, y1: np.ndarray, y2: np.ndarray, sr1: int, sr2: int = None
+        _self, y1: np.ndarray, y2: np.ndarray, sr1: int, sr2: int = None
     ) -> Dict[str, float]:
         """
         计算两个音频的相似度（支持不同采样率）
@@ -88,7 +93,7 @@ class AudioAnalyzer:
         Returns:
             相似度指标字典
         """
-        return self.similarity_calculator.calculate_comprehensive_similarity(
+        return _self.similarity_calculator.calculate_comprehensive_similarity(
             y1, y2, sr1, sr2
         )
 
@@ -190,7 +195,6 @@ class AudioAnalyzer:
             节奏特征字典
         """
         return self.feature_extractor.extract_rhythm_features(y, sr)
-
     def resample_audio(
         self, y: np.ndarray, orig_sr: int, target_sr: int
     ) -> Tuple[np.ndarray, int]:
@@ -250,3 +254,4 @@ class AudioAnalyzer:
             MFCC相似度
         """
         return self.similarity_calculator.calculate_mfcc_similarity(y1, y2, sr)
+

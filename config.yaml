@@ -1,10 +1,10 @@
 app:
-  audio_root: /Users/jeguan/audio-compare/audio_files/
+  audio_root: /Users/jeguan/audio-compare/outputs
   cache:
     max_size: 100
     ttl: 3600
-  debug_mode: false
-  log_level: INFO
+  debug_mode: true
+  log_level: DEBUG
   server:
     enable_cors: true
     enable_xsrf_protection: true
@@ -12,12 +12,12 @@ app:
     port: 8501
 audio:
   dct_type: 2
-  default_sample_rate: 22050
+  default_sample_rate: 16000  # 降低采样率以减少计算量
   fmax: null
   fmin: 0
-  hop_length: 512
+  hop_length: 1024  # 增加跳跃长度以减少计算量
   n_fft: 2048
-  n_mels: 128
+  n_mels: 64  # 减少Mel滤波器组数量
   n_mfcc: 13
   norm: ortho
   spectral_rolloff_percentile: 0.85

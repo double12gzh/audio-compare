@@ -10,6 +10,7 @@ from plotly.subplots import make_subplots
 from typing import Optional, Tuple, Dict, Any
 
 from ..utils.config import VisualizationConfig
+from ..utils.cache_manager import streamlit_cached
 
 
 class AudioVisualizer:
@@ -24,8 +25,9 @@ class AudioVisualizer:
         """
         self.config = config or VisualizationConfig()
 
+    @streamlit_cached
     def plot_waveform(
-        self, y: np.ndarray, sr: int, title: str = "音频波形"
+        _self, y: np.ndarray, sr: int, title: str = "音频波形"
     ) -> Optional[go.Figure]:
         """
         绘制音频波形图
@@ -50,7 +52,7 @@ class AudioVisualizer:
                 y=y,
                 mode="lines",
                 name="波形",
-                line=dict(color=self.config.waveform_color, width=1),
+                line=dict(color=_self.config.waveform_color, width=1),
             )
         )
 
@@ -58,15 +60,16 @@ class AudioVisualizer:
             title=title,
             xaxis_title="时间 (秒)",
             yaxis_title="振幅",
-            height=self.config.waveform_height,
+            height=_self.config.waveform_height,
             showlegend=False,
             margin=dict(t=60, b=40, l=40, r=40),
         )
 
         return fig
 
+    @streamlit_cached
     def plot_mel_spectrogram(
-        self, y: np.ndarray, sr: int, title: str = "Mel 频谱图"
+        _self, y: np.ndarray, sr: int, title: str = "Mel 频谱图"
     ) -> Optional[go.Figure]:
         """
         绘制 Mel 频谱图
@@ -90,7 +93,7 @@ class AudioVisualizer:
         fig = go.Figure(
             data=go.Heatmap(
                 z=mel_spect_db,
-                colorscale=self.config.mel_colorscale,
+                colorscale=_self.config.mel_colorscale,
                 x=np.linspace(0, len(y) / sr, mel_spect_db.shape[1]),
                 y=np.linspace(0, sr / 2, mel_spect_db.shape[0]),
                 colorbar=dict(title="dB"),
@@ -101,14 +104,15 @@ class AudioVisualizer:
             title=title,
             xaxis_title="时间 (秒)",
             yaxis_title="频率 (Hz)",
-            height=self.config.spectrogram_height,
+            height=_self.config.spectrogram_height,
             margin=dict(t=60, b=40, l=40, r=40),
         )
 
         return fig
 
+    @streamlit_cached
     def plot_mfcc(
-        self, y: np.ndarray, sr: int, title: str = "MFCC 特征"
+        _self, y: np.ndarray, sr: int, title: str = "MFCC 特征"
     ) -> Optional[go.Figure]:
         """
         绘制 MFCC 特征图
@@ -129,7 +133,7 @@ class AudioVisualizer:
         fig = go.Figure(
             data=go.Heatmap(
                 z=mfcc,
-                colorscale=self.config.mfcc_colorscale,
+                colorscale=_self.config.mfcc_colorscale,
                 x=np.linspace(0, len(y) / sr, mfcc.shape[1]),
                 y=list(range(mfcc.shape[0])),
             )
@@ -139,14 +143,15 @@ class AudioVisualizer:
             title=title,
             xaxis_title="时间 (秒)",
             yaxis_title="MFCC 系数",
-            height=self.config.spectrogram_height,
+            height=_self.config.spectrogram_height,
             margin=dict(t=60, b=40, l=40, r=40),
         )
 
         return fig
 
+    @streamlit_cached
     def plot_comparison_waveform(
-        self,
+        _self,
         y1: np.ndarray,
         y2: np.ndarray,
         sr: int,
@@ -182,7 +187,7 @@ class AudioVisualizer:
                 y=y1,
                 mode="lines",
                 name=title1,
-                line=dict(color=self.config.comparison_color1),
+                line=dict(color=_self.config.comparison_color1),
             ),
             row=1,
             col=1,
@@ -194,7 +199,7 @@ class AudioVisualizer:
                 y=y2,
                 mode="lines",
                 name=title2,
-                line=dict(color=self.config.comparison_color2),
+                line=dict(color=_self.config.comparison_color2),
             ),
             row=2,
             col=1,
@@ -202,7 +207,7 @@ class AudioVisualizer:
 
         fig.update_layout(
             title="波形对比",
-            height=self.config.comparison_height,
+            height=_self.config.comparison_height,
             showlegend=True,
             legend=dict(
                 orientation="h",
@@ -227,8 +232,9 @@ class AudioVisualizer:
 
         return fig
 
+    @streamlit_cached
     def plot_comparison_mel(
-        self,
+        _self,
         y1: np.ndarray,
         y2: np.ndarray,
         sr: int,
@@ -268,7 +274,7 @@ class AudioVisualizer:
         fig.add_trace(
             go.Heatmap(
                 z=mel_spect_db1,
-                colorscale=self.config.mel_colorscale,
+                colorscale=_self.config.mel_colorscale,
                 x=np.linspace(0, len(y1) / sr, mel_spect_db1.shape[1]),
                 y=np.linspace(0, sr / 2, mel_spect_db1.shape[0]),
                 colorbar=dict(title="dB", x=0.45),
@@ -280,7 +286,7 @@ class AudioVisualizer:
         fig.add_trace(
             go.Heatmap(
                 z=mel_spect_db2,
-                colorscale=self.config.mel_colorscale,
+                colorscale=_self.config.mel_colorscale,
                 x=np.linspace(0, len(y2) / sr, mel_spect_db2.shape[1]),
                 y=np.linspace(0, sr / 2, mel_spect_db2.shape[0]),
                 colorbar=dict(title="dB", x=1.0),
@@ -291,7 +297,7 @@ class AudioVisualizer:
 
         fig.update_layout(
             title="Mel 频谱对比",
-            height=self.config.comparison_height,
+            height=_self.config.comparison_height,
             legend=dict(
                 orientation="h",
                 yanchor="bottom",
@@ -307,8 +313,9 @@ class AudioVisualizer:
 
         return fig
 
+    @streamlit_cached
     def plot_overlay_waveform(
-        self,
+        _self,
         y1: np.ndarray,
         y2: np.ndarray,
         sr: int,
@@ -331,7 +338,7 @@ class AudioVisualizer:
                 y=y1,
                 mode="lines",
                 name=title1,
-                line=dict(color=self.config.comparison_color1, width=1.5),
+                line=dict(color=_self.config.comparison_color1, width=1.5),
             )
         )
         fig.add_trace(
@@ -340,14 +347,14 @@ class AudioVisualizer:
                 y=y2,
                 mode="lines",
                 name=title2,
-                line=dict(color=self.config.comparison_color2, width=1.5),
+                line=dict(color=_self.config.comparison_color2, width=1.5),
             )
         )
         fig.update_layout(
             title="叠加波形对比",
             xaxis_title="时间 (秒)",
             yaxis_title="振幅",
-            height=self.config.waveform_height,
+            height=_self.config.waveform_height,
             showlegend=True,
             legend=dict(
                 orientation="h",
@@ -363,8 +370,9 @@ class AudioVisualizer:
         )
         return fig
 
+    @streamlit_cached
     def plot_comparison_mel_spectral_centroid(
-        self,
+        _self,
         y1: np.ndarray,
         y2: np.ndarray,
         sr: int,
@@ -395,7 +403,7 @@ class AudioVisualizer:
                 y=spectral_centroid1,
                 mode="lines",
                 name=title1,
-                line=dict(color=self.config.comparison_color1),
+                line=dict(color=_self.config.comparison_color1),
             ),
             row=1,
             col=1,
@@ -406,14 +414,14 @@ class AudioVisualizer:
                 y=spectral_centroid2,
                 mode="lines",
                 name=title2,
-                line=dict(color=self.config.comparison_color2),
+                line=dict(color=_self.config.comparison_color2),
             ),
             row=2,
             col=1,
         )
         fig.update_layout(
             title="Mel 谱率对比",
-            height=self.config.comparison_height,
+            height=_self.config.comparison_height,
             showlegend=True,
             legend=dict(
                 orientation="h",
@@ -436,8 +444,9 @@ class AudioVisualizer:
         fig.update_annotations(dict(font_size=14, font_color="black"))
         return fig
 
+    @streamlit_cached
     def plot_overlay_mel_spectral_centroid(
-        self,
+        _self,
         y1: np.ndarray,
         y2: np.ndarray,
         sr: int,
@@ -468,7 +477,7 @@ class AudioVisualizer:
                 y=spectral_centroid1,
                 mode="lines",
                 name=title1,
-                line=dict(color=self.config.comparison_color1, width=2),
+                line=dict(color=_self.config.comparison_color1, width=2),
             )
         )
         fig.add_trace(
@@ -477,14 +486,14 @@ class AudioVisualizer:
                 y=spectral_centroid2,
                 mode="lines",
                 name=title2,
-                line=dict(color=self.config.comparison_color2, width=2),
+                line=dict(color=_self.config.comparison_color2, width=2),
             )
         )
         fig.update_layout(
             title="叠加 Mel 谱率对比",
             xaxis_title="时间 (秒)",
             yaxis_title="频率 (Hz)",
-            height=self.config.waveform_height,
+            height=_self.config.waveform_height,
             showlegend=True,
             legend=dict(
                 orientation="h",
@@ -500,8 +509,9 @@ class AudioVisualizer:
         )
         return fig
 
+    @streamlit_cached
     def plot_comparison_mfcc(
-        self,
+        _self,
         y1: np.ndarray,
         y2: np.ndarray,
         sr: int,
@@ -525,7 +535,7 @@ class AudioVisualizer:
         fig.add_trace(
             go.Heatmap(
                 z=mfcc1,
-                colorscale=self.config.mfcc_colorscale,
+                colorscale=_self.config.mfcc_colorscale,
                 x=np.linspace(0, len(y1) / sr, mfcc1.shape[1]),
                 y=list(range(mfcc1.shape[0])),
                 colorbar=dict(title="MFCC", x=0.45),
@@ -537,7 +547,7 @@ class AudioVisualizer:
         fig.add_trace(
             go.Heatmap(
                 z=mfcc2,
-                colorscale=self.config.mfcc_colorscale,
+                colorscale=_self.config.mfcc_colorscale,
                 x=np.linspace(0, len(y2) / sr, mfcc2.shape[1]),
                 y=list(range(mfcc2.shape[0])),
                 colorbar=dict(title="MFCC", x=1.0),
@@ -548,7 +558,7 @@ class AudioVisualizer:
 
         fig.update_layout(
             title="MFCC 对比",
-            height=self.config.comparison_height,
+            height=_self.config.comparison_height,
             legend=dict(
                 orientation="h",
                 yanchor="bottom",

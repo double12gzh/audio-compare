@@ -105,13 +105,34 @@ class BatchAnalysisPage(BasePage):
 
             # 直接进行批量对比
             if matches:
-                self._perform_batch_comparison(matches)
+                # 检查是否有缓存的结果
+                cache_key = f"batch_comparison_{dir_a}_{dir_b}"
+                if cache_key not in st.session_state:
+                    st.session_state[cache_key] = None
+                
+                if st.session_state[cache_key] is None:
+                    with st.spinner("正在进行批量对比分析..."):
+                        self._perform_batch_comparison(matches)
+                        st.session_state[cache_key] = True
+                else:
+                    st.info("使用缓存的分析结果")
+                    self._perform_batch_comparison(matches)
 
     def _perform_batch_comparison(self, matches):
         """执行批量对比分析"""
         # 为每个文件对进行完整对比分析
         results = []
+        
+        # 创建进度条
+        progress_bar = st.progress(0)
+        status_text = st.empty()
+        
         for i, (fname, path_a, path_b) in enumerate(matches):
+            # 更新进度
+            progress = (i + 1) / len(matches)
+            progress_bar.progress(progress)
+            status_text.text(f"正在分析: {fname} ({i+1}/{len(matches)})")
+            
             # 先计算相似度用于显示在标题中
             try:
                 y1_temp, sr1_temp = self.analyzer.load_audio_from_path(path_a)
@@ -211,6 +232,10 @@ class BatchAnalysisPage(BasePage):
                     st.error(f"对比分析失败: {str(e)}")
                     results.append({"文件路径": fname, "错误": str(e)})
 
+        # 清除进度条
+        progress_bar.empty()
+        status_text.empty()
+        
         # 显示汇总结果表格
         if results:
             st.subheader("汇总对比结果")

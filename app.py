@@ -48,6 +48,19 @@ def main():
     sidebar_config = SidebarConfig(config)
     sidebar_params = sidebar_config.render()
 
+    # 缓存状态显示
+    if config.debug_mode:
+        from src.utils.cache_manager import get_cache_manager
+        cache_manager = get_cache_manager()
+        if os.path.exists(cache_manager.cache_dir):
+            cache_files = [f for f in os.listdir(cache_manager.cache_dir) if f.endswith('.pkl')]
+            st.sidebar.info(f"缓存状态: {len(cache_files)} 个文件")
+            
+            if st.sidebar.button("清理缓存"):
+                cache_manager.clear()
+                st.sidebar.success("缓存已清理")
+                st.rerun()
+
     # 主界面标签页
     tab1, tab2, tab3, tab4 = st.tabs(["📊 单音频分析", "🔄 音频对比", "📈 批量分析", "ℹ️ 关于"])
 
