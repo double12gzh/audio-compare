@@ -31,18 +31,14 @@ def main():
     CSSStyler.inject_css()
 
     # 显示主标题
-    st.markdown(
-        '<h1 class="main-header">🎵 TTS 音频验收工具</h1>', unsafe_allow_html=True
-    )
+    st.markdown('<h1 class="main-header">🎵 TTS 音频验收工具</h1>', unsafe_allow_html=True)
 
     # 侧边栏配置
     sidebar_config = SidebarConfig(config)
     sidebar_params = sidebar_config.render()
 
     # 主界面标签页
-    tab1, tab2, tab3, tab4 = st.tabs(
-        ["📊 单音频分析", "🔄 音频对比", "📈 批量分析", "ℹ️ 关于"]
-    )
+    tab1, tab2, tab3, tab4 = st.tabs(["📊 单音频分析", "🔄 音频对比", "📈 批量分析", "ℹ️ 关于"])
 
     # 单音频分析页面
     with tab1:

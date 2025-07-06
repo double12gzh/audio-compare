@@ -12,10 +12,10 @@ from .styling import CSSStyler
 
 __all__ = [
     "SidebarConfig",
-    "AudioFileSelector", 
+    "AudioFileSelector",
     "AudioInfoDisplay",
     "SimilarityDisplay",
     "ChartDisplay",
     "BatchResultsDisplay",
     "CSSStyler",
-] 
+]

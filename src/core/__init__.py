@@ -8,11 +8,11 @@ from .spectral_metrics import SpectralMetrics
 from .mfcc_metrics import MFCCMetrics
 
 __all__ = [
-    'AudioAnalyzer',
-    'AudioLoader', 
-    'FeatureExtractor',
-    'SimilarityCalculator',
-    'BasicMetrics',
-    'SpectralMetrics',
-    'MFCCMetrics'
-] 
+    "AudioAnalyzer",
+    "AudioLoader",
+    "FeatureExtractor",
+    "SimilarityCalculator",
+    "BasicMetrics",
+    "SpectralMetrics",
+    "MFCCMetrics",
+]

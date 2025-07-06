@@ -246,8 +246,8 @@ class SimilarityCalculator:
                 f1 = f1[:min_len]
                 f2 = f2[:min_len]
 
-                similarities[f"{feature_name}_similarity"] = (
-                    self.calculate_cosine_similarity(f1, f2)
-                )
+                similarities[
+                    f"{feature_name}_similarity"
+                ] = self.calculate_cosine_similarity(f1, f2)
 
         return similarities

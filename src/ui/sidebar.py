@@ -21,9 +21,7 @@ class SidebarConfig:
 
         # 音频参数设置
         st.sidebar.subheader("音频参数")
-        sample_rate = st.sidebar.selectbox(
-            "采样率", [8000, 16000, 22050, 44100], index=2
-        )
+        sample_rate = st.sidebar.selectbox("采样率", [8000, 16000, 22050, 44100], index=2)
 
         n_mels = st.sidebar.slider("Mel 滤波器组数量", 64, 256, 128)
 
