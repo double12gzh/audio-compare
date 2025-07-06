@@ -307,8 +307,6 @@ class AudioVisualizer:
 
         return fig
 
-
-
     def plot_overlay_waveform(
         self,
         y1: np.ndarray,
@@ -364,8 +362,6 @@ class AudioVisualizer:
             margin=dict(t=80, b=40, l=40, r=40),
         )
         return fig
-
-
 
     def plot_comparison_mel_spectral_centroid(
         self,

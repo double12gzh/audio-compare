@@ -5,7 +5,7 @@ TTS 音频验收工具主应用
 
 import streamlit as st
 from src.utils.config import AppConfig
-from src.ui.components import CSSStyler, SidebarConfig
+from src.ui import CSSStyler, SidebarConfig
 from src.ui.pages import SingleAudioPage, ComparisonPage, BatchAnalysisPage, AboutPage
 
 

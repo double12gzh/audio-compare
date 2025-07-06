@@ -9,7 +9,7 @@ from typing import Optional, Dict, Any, List
 
 from ..core.audio_analyzer import AudioAnalyzer
 from ..visualization.audio_plots import AudioVisualizer
-from ..ui.components import (
+from ..ui import (
     AudioFileSelector, AudioInfoDisplay, SimilarityDisplay, 
     ChartDisplay, BatchResultsDisplay, CSSStyler
 )
