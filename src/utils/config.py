@@ -251,25 +251,51 @@ class AppConfig:
 
 
 def scan_audio_files_in_dir(
-    directory: str, exts=(".wav", ".mp3", ".flac", ".ogg", ".m4a")
+    directory: str,
+    exts=(".wav", ".mp3", ".flac", ".ogg", ".m4a"),
+    recursive: bool = True,
 ) -> List[str]:
     """
-    扫描目录下所有音频文件，返回文件名列表（不含路径）
+    扫描目录下所有音频文件，返回相对路径列表
+
+    Args:
+        directory: 要扫描的目录
+        exts: 支持的音频文件扩展名
+        recursive: 是否递归扫描子目录
+
+    Returns:
+        相对路径列表，相对于指定目录
     """
     if not os.path.isdir(directory):
         return []
-    files = [f for f in os.listdir(directory) if os.path.splitext(f)[1].lower() in exts]
-    return files
+
+    audio_files = []
+
+    if recursive:
+        # 递归扫描子目录
+        for root, dirs, files in os.walk(directory):
+            for file in files:
+                if os.path.splitext(file)[1].lower() in exts:
+                    # 计算相对于指定目录的路径
+                    rel_path = os.path.relpath(os.path.join(root, file), directory)
+                    audio_files.append(rel_path)
+    else:
+        # 只扫描当前目录
+        for file in os.listdir(directory):
+            if os.path.splitext(file)[1].lower() in exts:
+                audio_files.append(file)
+
+    return sorted(audio_files)
 
 
 def find_matching_files(dir_a: str, dir_b: str) -> List[Tuple[str, str, str]]:
     """
-    找到两个目录下同名音频文件，返回[(文件名, 路径A, 路径B)]
+    找到两个目录下同名音频文件（包括子目录），返回[(相对路径, 完整路径A, 完整路径B)]
     """
-    files_a = set(scan_audio_files_in_dir(dir_a))
-    files_b = set(scan_audio_files_in_dir(dir_b))
+    files_a = set(scan_audio_files_in_dir(dir_a, recursive=True))
+    files_b = set(scan_audio_files_in_dir(dir_b, recursive=True))
     common = files_a & files_b
     return [
-        (fname, os.path.join(dir_a, fname), os.path.join(dir_b, fname))
-        for fname in sorted(common)
+        (rel_path, os.path.join(dir_a, rel_path), os.path.join(dir_b, rel_path))
+        for rel_path in sorted(common)
     ]

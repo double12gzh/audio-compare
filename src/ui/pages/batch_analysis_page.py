@@ -21,9 +21,78 @@ class BatchAnalysisPage(BasePage):
 
         st.markdown("选择两个目录，将自动对比同名音频文件。")
 
-        # 目录选择
-        dir_a = st.text_input("目录A路径", value="./audio_files/A")
-        dir_b = st.text_input("目录B路径", value="./audio_files/B")
+        # 获取所有可选目录（含根目录和所有子目录）
+        def get_all_dirs(root):
+            dirs = [root]
+            for d, subdirs, _ in os.walk(root):
+                for sub in subdirs:
+                    dirs.append(os.path.join(d, sub))
+            return sorted(set(dirs))
+
+        # 获取完整路径列表
+        all_dirs_full = get_all_dirs("./audio_files")
+
+        # 创建显示名称映射（去掉audio_files/前缀）
+        display_names = []
+        for dir_path in all_dirs_full:
+            if dir_path == "./audio_files":
+                display_names.append("根目录")
+            else:
+                # 去掉 "./audio_files/" 前缀
+                rel_path = dir_path.replace("./audio_files/", "")
+                display_names.append(rel_path)
+
+        # 创建路径到显示名称的映射
+        dir_to_display = dict(zip(all_dirs_full, display_names))
+        display_to_dir = dict(zip(display_names, all_dirs_full))
+
+        # 默认值
+        default_a = next(
+            (d for d in all_dirs_full if d.endswith("/A")),
+            all_dirs_full[0] if all_dirs_full else "",
+        )
+        default_b = next(
+            (d for d in all_dirs_full if d.endswith("/B")),
+            all_dirs_full[1]
+            if len(all_dirs_full) > 1
+            else (all_dirs_full[0] if all_dirs_full else ""),
+        )
+
+        if "batch_dir_a" not in st.session_state:
+            st.session_state.batch_dir_a = default_a
+        if "batch_dir_b" not in st.session_state:
+            st.session_state.batch_dir_b = default_b
+
+        # 目录选择（下拉）
+        dir_a_display = st.selectbox(
+            "目录A路径",
+            options=display_names,
+            index=display_names.index(
+                dir_to_display.get(st.session_state.batch_dir_a, display_names[0])
+            )
+            if st.session_state.batch_dir_a in all_dirs_full
+            else 0,
+            key="batch_dir_a_select",
+        )
+        dir_b_display = st.selectbox(
+            "目录B路径",
+            options=display_names,
+            index=display_names.index(
+                dir_to_display.get(
+                    st.session_state.batch_dir_b,
+                    display_names[1] if len(display_names) > 1 else display_names[0],
+                )
+            )
+            if st.session_state.batch_dir_b in all_dirs_full
+            else (1 if len(display_names) > 1 else 0),
+            key="batch_dir_b_select",
+        )
+
+        # 转换回完整路径
+        dir_a = display_to_dir[dir_a_display]
+        dir_b = display_to_dir[dir_b_display]
+        st.session_state.batch_dir_a = dir_a
+        st.session_state.batch_dir_b = dir_b
 
         if st.button("扫描并对比同名文件"):
             from ...utils.config import find_matching_files
@@ -130,17 +199,17 @@ class BatchAnalysisPage(BasePage):
 
                         # 收集结果用于汇总表格
                         sim = self.analyzer.calculate_similarity(y1, y2, sr1, sr2)
-                        row = {"文件名": fname}
+                        row = {"文件路径": fname}
                         row.update(sim)
                         results.append(row)
 
                     else:
                         st.error("音频加载失败")
-                        results.append({"文件名": fname, "错误": "音频加载失败"})
+                        results.append({"文件路径": fname, "错误": "音频加载失败"})
 
                 except Exception as e:
                     st.error(f"对比分析失败: {str(e)}")
-                    results.append({"文件名": fname, "错误": str(e)})
+                    results.append({"文件路径": fname, "错误": str(e)})
 
         # 显示汇总结果表格
         if results:

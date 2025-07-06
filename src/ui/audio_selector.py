@@ -22,13 +22,12 @@ class AudioFileSelector:
     def _scan_files(self):
         if not os.path.exists(self.audio_root):
             return []
-        files = [
-            f
-            for f in os.listdir(self.audio_root)
-            if os.path.isfile(os.path.join(self.audio_root, f))
-            and f.lower().endswith(self.supported_exts)
-        ]
-        return sorted(files)
+
+        # 使用新的递归扫描函数
+        from ..utils.config import scan_audio_files_in_dir
+
+        files = scan_audio_files_in_dir(self.audio_root, recursive=True)
+        return files
 
     def _get_audio_format(self, filename: str) -> str:
         """根据文件扩展名获取音频格式"""

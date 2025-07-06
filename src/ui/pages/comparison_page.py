@@ -50,45 +50,77 @@ class ComparisonPage(BasePage):
         """渲染路径输入方式"""
         from ...utils.config import scan_audio_files_in_dir
 
+        # 获取可用的音频文件（包括子目录）
+        available_files = scan_audio_files_in_dir("./audio_files", recursive=True)
+
+        if not available_files:
+            st.warning("未找到音频文件，请确保 ./audio_files 目录下有音频文件")
+            return None, None
+
         # 初始化session_state
-        if "audio1_path" not in st.session_state:
-            st.session_state.audio1_path = "./audio_files/audio1.wav"
-        if "audio2_path" not in st.session_state:
-            st.session_state.audio2_path = "./audio_files/audio2.wav"
+        if "audio1_selected" not in st.session_state:
+            st.session_state.audio1_selected = (
+                available_files[0] if available_files else ""
+            )
+        if "audio2_selected" not in st.session_state:
+            st.session_state.audio2_selected = (
+                available_files[1]
+                if len(available_files) > 1
+                else available_files[0]
+                if available_files
+                else ""
+            )
 
         col1, col2 = st.columns(2)
         with col1:
-            audio1_path = st.text_input(
-                "音频1路径", value=st.session_state.audio1_path, key="audio1_input"
+            st.subheader("音频1")
+            audio1_selected = st.selectbox(
+                "选择音频1文件",
+                options=available_files,
+                index=available_files.index(st.session_state.audio1_selected)
+                if st.session_state.audio1_selected in available_files
+                else 0,
+                key="audio1_selectbox",
             )
-        with col2:
-            audio2_path = st.text_input(
-                "音频2路径", value=st.session_state.audio2_path, key="audio2_input"
-            )
-
-        # 显示可用的音频文件
-        if st.checkbox("显示可用音频文件", key="show_available_files"):
-            available_files = scan_audio_files_in_dir("./audio_files")
-            if available_files:
-                st.write("**可用的音频文件:**")
-                col1, col2 = st.columns(2)
-                with col1:
-                    st.write("**音频1选择:**")
-                    for file in available_files:
-                        if st.button(f"选择: {file}", key=f"select1_{file}"):
-                            st.session_state.audio1_path = f"./audio_files/{file}"
-                            st.rerun()
-                with col2:
-                    st.write("**音频2选择:**")
-                    for file in available_files:
-                        if st.button(f"选择: {file}", key=f"select2_{file}"):
-                            st.session_state.audio2_path = f"./audio_files/{file}"
-                            st.rerun()
+            if audio1_selected:
+                audio1_path = os.path.join("./audio_files", audio1_selected)
+                st.session_state.audio1_selected = audio1_selected
+                # 显示音频播放器
+                st.audio(audio1_path, format=self._get_audio_format(audio1_path))
             else:
-                st.warning("未找到音频文件")
+                audio1_path = None
 
-        # 使用session_state中的路径
-        return st.session_state.audio1_path, st.session_state.audio2_path
+        with col2:
+            st.subheader("音频2")
+            audio2_selected = st.selectbox(
+                "选择音频2文件",
+                options=available_files,
+                index=available_files.index(st.session_state.audio2_selected)
+                if st.session_state.audio2_selected in available_files
+                else 0,
+                key="audio2_selectbox",
+            )
+            if audio2_selected:
+                audio2_path = os.path.join("./audio_files", audio2_selected)
+                st.session_state.audio2_selected = audio2_selected
+                # 显示音频播放器
+                st.audio(audio2_path, format=self._get_audio_format(audio2_path))
+            else:
+                audio2_path = None
+
+        return audio1_path, audio2_path
+
+    def _get_audio_format(self, audio_path: str) -> str:
+        """根据文件扩展名获取音频格式"""
+        ext = os.path.splitext(audio_path)[1].lower()
+        format_map = {
+            ".wav": "audio/wav",
+            ".mp3": "audio/mpeg",
+            ".flac": "audio/flac",
+            ".ogg": "audio/ogg",
+            ".m4a": "audio/mp4",
+        }
+        return format_map.get(ext, "audio/wav")
 
     def _render_file_upload(self):
         """渲染文件上传方式"""
