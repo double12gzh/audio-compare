@@ -4,6 +4,7 @@ TTS 音频验收工具主应用
 """
 
 import streamlit as st
+import os
 from src.utils.config import AppConfig
 from src.ui import CSSStyler, SidebarConfig
 from src.ui.pages import SingleAudioPage, ComparisonPage, BatchAnalysisPage, AboutPage
@@ -22,7 +23,17 @@ def setup_page_config(config: AppConfig):
 def main():
     """主函数"""
     # 初始化配置
-    config = AppConfig()
+    config_path = os.environ.get("AUDIO_COMPARE_CONFIG", "config.yaml")
+
+    try:
+        # 尝试从YAML文件加载配置
+        config = AppConfig.from_yaml(config_path)
+        print(f"✅ 成功从配置文件加载: {config_path}")
+    except (FileNotFoundError, ValueError) as e:
+        # 如果配置文件不存在或加载失败，使用默认配置
+        print(f"⚠️  配置文件加载失败: {e}")
+        print("使用默认配置启动应用")
+        config = AppConfig()
 
     # 设置页面配置
     setup_page_config(config)

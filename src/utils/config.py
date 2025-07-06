@@ -1,9 +1,11 @@
 """
 配置管理模块
 使用数据类来管理各种配置参数
+支持从YAML文件加载配置
 """
 
 import os
+import yaml
 from dataclasses import dataclass
 from typing import List, Optional, Dict, Any, Tuple
 
@@ -124,6 +126,24 @@ class ExportConfig:
 
 
 @dataclass
+class ServerConfig:
+    """服务器配置"""
+
+    port: int = 8501
+    host: str = "localhost"
+    enable_cors: bool = True
+    enable_xsrf_protection: bool = True
+
+
+@dataclass
+class CacheConfig:
+    """缓存配置"""
+
+    max_size: int = 100
+    ttl: int = 3600  # 秒
+
+
+@dataclass
 class AppConfig:
     """应用总配置"""
 
@@ -134,7 +154,11 @@ class AppConfig:
     ui: UIConfig = None
     feature: FeatureConfig = None
     export: ExportConfig = None
+    server: ServerConfig = None
+    cache: CacheConfig = None
     audio_root: str = AUDIO_ROOT
+    debug_mode: bool = False
+    log_level: str = "INFO"
 
     def __post_init__(self):
         if self.audio is None:
@@ -151,12 +175,17 @@ class AppConfig:
             self.feature = FeatureConfig()
         if self.export is None:
             self.export = ExportConfig()
+        if self.server is None:
+            self.server = ServerConfig()
+        if self.cache is None:
+            self.cache = CacheConfig()
         if not hasattr(self, "audio_root") or self.audio_root is None:
             self.audio_root = AUDIO_ROOT
 
     @classmethod
     def from_dict(cls, config_dict: Dict[str, Any]) -> "AppConfig":
         """从字典创建配置对象"""
+        app_config = config_dict.get("app", {})
         return cls(
             audio=AudioConfig(**config_dict.get("audio", {})),
             visualization=VisualizationConfig(**config_dict.get("visualization", {})),
@@ -165,7 +194,27 @@ class AppConfig:
             ui=UIConfig(**config_dict.get("ui", {})),
             feature=FeatureConfig(**config_dict.get("feature", {})),
             export=ExportConfig(**config_dict.get("export", {})),
+            server=ServerConfig(**app_config.get("server", {})),
+            cache=CacheConfig(**app_config.get("cache", {})),
+            audio_root=app_config.get("audio_root", AUDIO_ROOT),
+            debug_mode=app_config.get("debug_mode", False),
+            log_level=app_config.get("log_level", "INFO"),
         )
+
+    @classmethod
+    def from_yaml(cls, yaml_path: str) -> "AppConfig":
+        """从YAML文件加载配置"""
+        if not os.path.exists(yaml_path):
+            raise FileNotFoundError(f"配置文件不存在: {yaml_path}")
+
+        try:
+            with open(yaml_path, "r", encoding="utf-8") as f:
+                config_dict = yaml.safe_load(f)
+            return cls.from_dict(config_dict)
+        except yaml.YAMLError as e:
+            raise ValueError(f"YAML配置文件格式错误: {e}")
+        except Exception as e:
+            raise ValueError(f"加载配置文件失败: {e}")
 
     def to_dict(self) -> Dict[str, Any]:
         """转换为字典"""
@@ -177,7 +226,28 @@ class AppConfig:
             "ui": self.ui.__dict__,
             "feature": self.feature.__dict__,
             "export": self.export.__dict__,
+            "app": {
+                "server": self.server.__dict__,
+                "cache": self.cache.__dict__,
+                "audio_root": self.audio_root,
+                "debug_mode": self.debug_mode,
+                "log_level": self.log_level,
+            },
         }
+
+    def to_yaml(self, yaml_path: str) -> None:
+        """保存配置到YAML文件"""
+        try:
+            with open(yaml_path, "w", encoding="utf-8") as f:
+                yaml.dump(
+                    self.to_dict(),
+                    f,
+                    default_flow_style=False,
+                    allow_unicode=True,
+                    indent=2,
+                )
+        except Exception as e:
+            raise ValueError(f"保存配置文件失败: {e}")
 
 
 def scan_audio_files_in_dir(

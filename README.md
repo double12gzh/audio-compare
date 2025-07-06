@@ -71,6 +71,64 @@ streamlit run app.py
 - **Pandas**: 数据处理
 - **SciPy**: 科学计算
 
+## 配置文件
+
+应用支持通过YAML配置文件进行参数配置。配置文件包含以下主要部分：
+
+### 音频处理配置
+- **采样率**: 默认22050Hz
+- **FFT窗口大小**: 默认2048
+- **Mel滤波器组数量**: 默认128
+- **MFCC系数数量**: 默认13
+
+### 服务器配置
+- **端口**: 默认8501
+- **主机**: 默认localhost
+- **CORS支持**: 默认启用
+- **XSRF保护**: 默认启用
+
+### 文件处理配置
+- **支持格式**: wav, mp3, flac, ogg, m4a
+- **最大文件大小**: 默认100MB
+- **最大批量文件数**: 默认50
+
+### 配置管理
+
+使用配置管理工具：
+
+```bash
+# 生成默认配置文件
+python config_manager.py generate
+
+# 验证配置文件
+python config_manager.py validate config.yaml
+
+# 显示配置差异
+python config_manager.py diff config.yaml
+
+# 备份配置文件
+python config_manager.py backup config.yaml
+```
+
+### 配置文件示例
+
+```yaml
+# 音频处理配置
+audio:
+  default_sample_rate: 22050
+  n_fft: 2048
+  n_mels: 128
+  n_mfcc: 13
+
+# 服务器配置
+app:
+  server:
+    port: 8501
+    host: "localhost"
+  debug_mode: false
+  log_level: "INFO"
+```
+
 ## 配置参数
 
 在侧边栏中可以调整以下参数：
